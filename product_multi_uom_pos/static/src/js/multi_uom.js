@@ -7,7 +7,7 @@ var PosBaseWidget = require('point_of_sale.BaseWidget');
 var popups = require('point_of_sale.popups');
 var core = require('web.core');
 var models = require('point_of_sale.models');
-var PosModelSuper = models.PosModel;
+var OrderlineSuper = models.Orderline;
 var pos_screens = require('point_of_sale.screens');
 var Model = require('web.DataModel');
 var QWeb = core.qweb;
@@ -41,9 +41,6 @@ var MultiUomWidget = PosBaseWidget.extend({
         this.uom_list = uom_by_category;
         this.current_uom = options.uom_list[0];
         this.renderElement();
-//        this.uom_list = options.uom_list;
-//        this.renderElement();
-//        this.$('.name').focus();
     },
     close: function(){
         if (this.pos.barcode_reader) {
@@ -55,18 +52,25 @@ var MultiUomWidget = PosBaseWidget.extend({
 
         var uom = parseInt(this.$('.uom').val());
         var order = self.pos.get_order();
-        console.log("order", order)
+//        console.log("order", order)
         var orderline = order.get_selected_orderline();
         var selected_uom = this.pos.units_by_id[uom];
-        orderline.product.uom_id[0] = uom;
-        orderline.product.uom_id[1] = selected_uom.display_name;
+        orderline.uom_id = [];
+        orderline.uom_id[0] = uom;
+        orderline.uom_id[1] = selected_uom.display_name;
+//        orderline.product.uom_id[0] = uom;
+//        orderline.product.uom_id[1] = selected_uom.display_name;
 //        console.log("-------", self.pos.get_order().get_selected_orderline())
+        console.log("---orderline-==", orderline)
         console.log("-------===", self.pos.get_order())
+//        var el_str  = QWeb.render('Orderline',{widget:order, line:orderline});
+//        order.render_orderline(orderline);
         order.remove_orderline(orderline);
         order.add_orderline(orderline);
 //        order.trigger('change');
 //        this.pos.bind('change:selectedOrder', this.change_selected_order, this);
         this.gui.close_popup();
+        return;
 
     },
     click_cancel: function(){
@@ -75,18 +79,52 @@ var MultiUomWidget = PosBaseWidget.extend({
 });
 gui.define_popup({name:'multi_uom_screen', widget: MultiUomWidget});
 
+pos_screens.OrderWidget.include({
+    update_summary: function(){
+        this._super();
+
+    },
+    new_test:function(){
+        alert("ghghg")
+    }
+});
+
+models.Orderline = models.Orderline.extend({
+    initialize: function(attr,options){
+        OrderlineSuper.prototype.initialize.call(this, attr, options);
+        this.uom_id = this ? this.product.uom_id: [];
+    },
+    export_as_JSON: function() {
+        var result = OrderlineSuper.prototype.export_as_JSON.call(this);
+        result.uom_id = this.uom_id;
+        return result;
+    },
+    get_unit: function(){
+        var res = OrderlineSuper.prototype.get_unit.call(this);
+        var unit_id = this.uom_id;
+        if(!unit_id){
+            return undefined;
+        }
+        unit_id = unit_id[0];
+        if(!this.pos){
+            return undefined;
+        }
+        console.log("this.pos.units_by_id[unit_id],", this.pos.units_by_id[unit_id])
+        return this.pos.units_by_id[unit_id];
+    }
+});
+
 pos_screens.ActionpadWidget.include({
     renderElement: function() {
         this._super();
         var self = this;
-        console.log("----", self.pos.get_order().get_selected_orderline())
         this.$('.multi-uom-span').click(function(){
-            console.log("----", self.pos.get_order().get_selected_orderline())
             var orderline = self.pos.get_order().get_selected_orderline();
             var options = {
                 'uom_list': orderline.product.uom_id
             };
             self.gui.show_popup('multi_uom_screen', options);
+            console.log("returned==", self.pos.get_order())
         });
     }
 });
