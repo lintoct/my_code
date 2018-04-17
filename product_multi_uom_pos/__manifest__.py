@@ -30,9 +30,10 @@
     'company': 'Cybrosys Techno Solutions',
     'images': ['static/description/banner.jpg'],
     'website': 'https://www.cybrosys.com',
-    'depends': ['point_of_sale'],
+    'depends': ['point_of_sale', 'stock'],
     'data': [
              'views/pos_template.xml',
+             'views/pos_view_extended.xml',
             ],
     'qweb': ['static/src/xml/pos.xml'],
     'images': ['static/description/banner.jpg'],
