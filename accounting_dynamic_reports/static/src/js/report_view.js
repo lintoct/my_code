@@ -250,7 +250,6 @@ odoo.define('accounting_dynamic_reports.MyReportWidget', function (require) {
         },
         init: function(parent, action) {
             $( ".main_report" ).empty();
-            console.log("action", action)
             this.category = {};
             this.report_name = action.report_name;
             //id of parent

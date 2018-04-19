@@ -279,7 +279,6 @@ class AccountCommonReportNew(models.TransientModel):
 
         #finding the root
         for item in report_lines:
-            item['balance'] = round(item['balance'], 2)
             if not item['parent']:
                 item['level'] = 1
                 parent = item
